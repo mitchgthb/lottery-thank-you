@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter the Lottery</title>
+    <script src="https://www.gstatic.com/firebasejs/9.9.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.9.4/firebase-firestore.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function generateUniqueNumber() {
+            let isUnique = false;
+            let lotteryNumber;
+
+            while (!isUnique) {
+                lotteryNumber = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit number
+                const snapshot = await db.collection("lotteryEntries").where("lotteryNumber", "==", lotteryNumber).get();
+                isUnique = snapshot.empty; // If no existing entries, it's unique
+            }
+            return lotteryNumber;
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const name = form.name.value;
+            const email = form.email.value;
+
+            const lotteryNumber = await generateUniqueNumber();
+            
+            await db.collection("lotteryEntries").add({
+                name,
+                email,
+                lotteryNumber,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Redirect to thank you page with the number
+            window.location.href = `thank-you.html?number=${lotteryNumber}`;
+        }
+
+    </script>
+</head>
+<body>
+    <h1>Enter the Lottery 🎟️</h1>
+    <form onsubmit="submitForm(event)">
+        <label>Name:</label>
+        <input type="text" name="name" required><br>
+        <label>Email:</label>
+        <input type="email" name="email" required><br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

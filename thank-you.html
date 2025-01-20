@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You!</title>
+    <script>
+        function getLotteryNumber() {
+            const params = new URLSearchParams(window.location.search);
+            const number = params.get("number");
+            if (number) {
+                document.getElementById("lottery-number").textContent = number;
+            } else {
+                document.getElementById("lottery-number").textContent = "Error: No number found.";
+            }
+        }
+    </script>
+</head>
+<body onload="getLotteryNumber()">
+    <h1>Thank You for Entering the Lottery! 🎉</h1>
+    <p>Your unique lottery number is: <strong id="lottery-number"></strong></p>
+    <p>Good luck!</p>
+    <a href="index.html">Go Back to the Form</a>
+</body>
+</html>
