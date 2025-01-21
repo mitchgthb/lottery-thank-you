@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank You for Entering! 🎉</title>
+    <title>Danki pa bo partisipashon! 🎉</title>
     
     <style>
         body {
@@ -67,42 +67,31 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.4/firebase-app.js";
         import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.9.4/firebase-firestore.js";
-
-        // Initialize Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAIXobiW1RMtc-la7_YErR3H5_RBCN45as",
-            authDomain: "lottery-entry.firebaseapp.com",
-            databaseURL: "https://lottery-entry-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "lottery-entry",
-            storageBucket: "lottery-entry.firebasestorage.app",
-            messagingSenderId: "262785817899",
-            appId: "1:262785817899:web:791916640532e973c3396e",
-            measurementId: "G-EF7HJMM2BN"
-        };
+        import { firebaseConfig } from "./firebase-config.js";
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Function to Fetch the Latest Lottery Number
+        // Function to Fetch the Latest Lottery Number based on IP Address
         async function fetchLotteryNumber() {
             console.log("Fetching latest lottery entry...");
 
-            // Get the user's email from local storage (set in index.html)
-            const userEmail = localStorage.getItem("userEmail");
+            // Get the user's IP address from local storage (set in index.html)
+            const userIP = localStorage.getItem("userIP");
 
-            if (!userEmail) {
-                console.error("No email found. Cannot fetch lottery number.");
-                document.getElementById("lotteryNumber").innerText = "Error: No email found.";
+            if (!userIP) {
+                console.error("No IP Address found. Cannot fetch lottery number.");
+                document.getElementById("lotteryNumber").innerText = "Error: No IP Address found.";
                 document.getElementById("lotteryNumber").classList.add("error");
                 return;
             }
 
-            console.log("Looking up lottery number for:", userEmail);
+            console.log("Looking up lottery number for IP:", userIP);
 
-            // Query Firestore for the latest entry by this email
+            // Query Firestore for the latest entry by this IP Address
             const q = query(
-                collection(db, "lotteryEntries"),
-                where("email", "==", userEmail),
+                collection(db, "feedbackEntries"),
+                where("ipAddress", "==", userIP),
                 orderBy("timestamp", "desc"),
                 limit(1)
             );
@@ -132,11 +121,11 @@
 <body>
 
     <div class="container">
-        <h1>🎉 Thank You for Entering the Lottery! 🎟️</h1>
-        <p class="message">Your unique lottery number is:</p>
+        <h1>🎉 Danki pa bo partisipashon! 🎟️</h1>
+        <p class="message">Bo número di sorteo úniko ta:</p>
         <p id="lotteryNumber" class="lottery-number">Loading...</p>
-        <p class="message">Good luck! 🍀</p>
-        <a href="index.html">Go Back to the Form</a>
+        <p class="message">Hopi eksito! 🍀</p>
+        <a href="index.html">Bèk na e formulario</a>
     </div>
 
 </body>

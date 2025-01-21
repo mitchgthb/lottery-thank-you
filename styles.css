@@ -56,3 +56,12 @@ button {
 button:hover {
     background-color: #4b79a1;
 }
+
+.radio-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+

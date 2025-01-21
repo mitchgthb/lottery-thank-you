@@ -8,73 +8,55 @@
 </head>
 <body>
     <div class="container">
-        <h1>📝 Feedback Form</h1>
-        <p>Your feedback helps us improve! Plus, you get a <strong>unique lottery number</strong> 🎟️.</p>
+        <h1>📝 Formulario di Feedback</h1>
+        <p>Bo feedback ta yuda nos mehora nos servisio! Ademas, bo ta haña un chens pa gana<strong> ku nos sorteo di number</strong></p>
         
         <form id="feedbackForm">
-            <label for="positiveFeedback">What went well?</label>
+            <label for="positiveFeedback">Kiko bo ta haña tabata fuerte?</label>
             <textarea id="positiveFeedback" name="positiveFeedback" required></textarea>
 
-            <label for="negativeFeedback">What went less well?</label>
+            <label for="negativeFeedback">Kiko a bai menos bon?</label>
             <textarea id="negativeFeedback" name="negativeFeedback" required></textarea>
 
-            <label>Was the communication sufficient?</label>
-            <input type="radio" id="yes" name="communication" value="Yes" required> <label for="yes">Yes</label>
-            <input type="radio" id="no" name="communication" value="No"> <label for="no">No</label>
+            <label>Bo ta haña e komunikashon sufiesiente?</label>
+            <div class="radio-group">
+                <input type="radio" id="yes" name="communication" value="Yes" required>
+                <label for="yes">Si</label>
+            
+                <input type="radio" id="no" name="communication" value="No">
+                <label for="no">No</label>
+            </div>            
+            <!-- <input type="radio" id="yes" name="communication" value="Yes" required> <label for="yes">Si</label>
+            <input type="radio" id="no" name="communication" value="No"> <label for="no">No</label> -->
 
-            <button type="submit">Submit Feedback 📩</button>
+            <button type="submit">Entregá formulario</button>
         </form>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.4/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.9.4/firebase-firestore.js";
+        import { firebaseConfig } from "./firebase-config.js";
 
-        // Initialize Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAIXobiW1RMtc-la7_YErR3H5_RBCN45as",
-            authDomain: "lottery-entry.firebaseapp.com",
-            databaseURL: "https://lottery-entry-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "lottery-entry",
-            storageBucket: "lottery-entry.firebasestorage.app",
-            messagingSenderId: "262785817899",
-            appId: "1:262785817899:web:791916640532e973c3396e",
-            measurementId: "G-EF7HJMM2BN"
-        };
-        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Function to check for duplicate feedback (IP & Device Info)
-        async function isDuplicateFeedback(ipAddress, deviceInfo) {
-            console.log("Checking for duplicate feedback...");
-            const q = query(
-                collection(db, "feedbackEntries"),
-                where("ipAddress", "==", ipAddress),
-                where("deviceInfo", "==", deviceInfo)
-            );
-
-            const snapshot = await getDocs(q);
-            return !snapshot.empty; // If snapshot is NOT empty, user already submitted
-        }
-
-        // Function to Get User's IP Address
-        async function getIPAddress() {
+        // Function to Get IP Address and Store it
+        async function fetchAndStoreIPAddress() {
             try {
                 console.log("Fetching IP address...");
                 const response = await fetch("https://api64.ipify.org?format=json");
                 const data = await response.json();
                 console.log("IP Address Retrieved:", data.ip);
-                return data.ip;
+                localStorage.setItem("userIP", data.ip);
             } catch (error) {
                 console.error("Error fetching IP Address:", error);
-                return "Unknown";
             }
         }
 
         // Function to Get Device Info
         function getDeviceInfo() {
-            return navigator.userAgent; // Returns browser & device details
+            return navigator.userAgent;
         }
 
         // Function to Generate a Unique Lottery Number
@@ -99,37 +81,55 @@
             return lotteryNumber;
         }
 
-        // Handle Form Submission
-        document.addEventListener("DOMContentLoaded", () => {
+        // Function to check for duplicate feedback (IP & Device Info)
+        async function isDuplicateFeedback(ipAddress, deviceInfo) {
+            console.log("Checking for duplicate feedback...");
+            const q = query(
+                collection(db, "feedbackEntries"),
+                where("ipAddress", "==", ipAddress),
+                where("deviceInfo", "==", deviceInfo)
+            );
+
+            const snapshot = await getDocs(q);
+            return !snapshot.empty; // If snapshot is NOT empty, user already submitted
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await fetchAndStoreIPAddress(); // Fetch IP on page load
+
             const form = document.getElementById("feedbackForm");
 
             if (form) {
                 form.addEventListener("submit", async function(event) {
                     event.preventDefault(); // Stop the form from submitting the traditional way
 
-                    console.log("Form submission started...");
+                    console.log("Entrega di formulario a kuminsá...");
 
                     // Get input values
                     const positiveFeedback = document.getElementById("positiveFeedback").value.trim();
                     const negativeFeedback = document.getElementById("negativeFeedback").value.trim();
                     const communication = document.querySelector('input[name="communication"]:checked')?.value || "No response";
+                    
+                    const ipAddress = localStorage.getItem("userIP");
+                    const deviceInfo = getDeviceInfo();
 
                     if (!positiveFeedback || !negativeFeedback) {
-                        console.error("Form validation failed.");
-                        alert("Please complete all fields before submitting.");
+                        console.error("Validashon di e formulario a frakasá.");
+                        alert("Por fabor yena tur kontesta promé ku entregá.");
+                        return;
+                    }
+
+                    if (!ipAddress) {
+                        alert("No IP Address found. Please refresh and try again.");
                         return;
                     }
 
                     try {
-                        // Get IP & Device Info
-                        const ipAddress = await getIPAddress();
-                        const deviceInfo = getDeviceInfo();
-
                         console.log("Checking for duplicate feedback...");
                         const isDuplicate = await isDuplicateFeedback(ipAddress, deviceInfo);
 
                         if (isDuplicate) {
-                            alert("You have already submitted feedback from this device.");
+                            alert("Bo a entregá feedback kaba.");
                             return;
                         }
 
@@ -149,13 +149,13 @@
                             timestamp: serverTimestamp()
                         });
 
-                        console.log("Feedback successfully submitted!");
+                        console.log("Feedback a wòrdu entregá!");
 
                         // Redirect to Thank You Page with Lottery Number
                         window.location.href = `thank-you.html?number=${lotteryNumber}`;
                     } catch (error) {
-                        console.error("Error submitting feedback:", error);
-                        alert("An error occurred. Please try again later.");
+                        console.error("Eror entra formulario:", error);
+                        alert("Un eror a sosodé. Porfabor purba atrobe mas despues.");
                     }
                 });
             }
