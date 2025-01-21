@@ -3,23 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank You!</title>
-    <script>
-        function getLotteryNumber() {
-            const params = new URLSearchParams(window.location.search);
-            const number = params.get("number");
-            if (number) {
-                document.getElementById("lottery-number").textContent = number;
-            } else {
-                document.getElementById("lottery-number").textContent = "Error: No number found.";
+    <title>Thank You for Entering! 🎉</title>
+    
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .container {
+            background: white;
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d89ef;
+        }
+
+        .lottery-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d9534f;
+            background: #ffebeb;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+
+        .message {
+            font-size: 18px;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: white;
+            background: #2d89ef;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            background: #2164c4;
+        }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.4/firebase-app.js";
+        import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.9.4/firebase-firestore.js";
+
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIXobiW1RMtc-la7_YErR3H5_RBCN45as",
+            authDomain: "lottery-entry.firebaseapp.com",
+            databaseURL: "https://lottery-entry-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "lottery-entry",
+            storageBucket: "lottery-entry.firebasestorage.app",
+            messagingSenderId: "262785817899",
+            appId: "1:262785817899:web:791916640532e973c3396e",
+            measurementId: "G-EF7HJMM2BN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to Fetch the Latest Lottery Number
+        async function fetchLotteryNumber() {
+            console.log("Fetching latest lottery entry...");
+
+            // Get the user's email from local storage (set in index.html)
+            const userEmail = localStorage.getItem("userEmail");
+
+            if (!userEmail) {
+                console.error("No email found. Cannot fetch lottery number.");
+                document.getElementById("lotteryNumber").innerText = "Error: No email found.";
+                document.getElementById("lotteryNumber").classList.add("error");
+                return;
+            }
+
+            console.log("Looking up lottery number for:", userEmail);
+
+            // Query Firestore for the latest entry by this email
+            const q = query(
+                collection(db, "lotteryEntries"),
+                where("email", "==", userEmail),
+                orderBy("timestamp", "desc"),
+                limit(1)
+            );
+
+            try {
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const latestEntry = querySnapshot.docs[0].data();
+                    console.log("Lottery Number Retrieved:", latestEntry.lotteryNumber);
+                    document.getElementById("lotteryNumber").innerText = latestEntry.lotteryNumber;
+                } else {
+                    console.error("No matching entry found.");
+                    document.getElementById("lotteryNumber").innerText = "Error: No number found.";
+                    document.getElementById("lotteryNumber").classList.add("error");
+                }
+            } catch (error) {
+                console.error("Error fetching lottery number:", error);
+                document.getElementById("lotteryNumber").innerText = "Error retrieving number.";
+                document.getElementById("lotteryNumber").classList.add("error");
             }
         }
+
+        // Fetch the lottery number on page load
+        document.addEventListener("DOMContentLoaded", fetchLotteryNumber);
     </script>
 </head>
-<body onload="getLotteryNumber()">
-    <h1>Thank You for Entering the Lottery! 🎉</h1>
-    <p>Your unique lottery number is: <strong id="lottery-number"></strong></p>
-    <p>Good luck!</p>
-    <a href="index.html">Go Back to the Form</a>
+<body>
+
+    <div class="container">
+        <h1>🎉 Thank You for Entering the Lottery! 🎟️</h1>
+        <p class="message">Your unique lottery number is:</p>
+        <p id="lotteryNumber" class="lottery-number">Loading...</p>
+        <p class="message">Good luck! 🍀</p>
+        <a href="index.html">Go Back to the Form</a>
+    </div>
+
 </body>
 </html>
